@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.chriniko</groupId>
+    <artifactId>controller-error-handling</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>controller-error-handling</name>
+    <description>Sample project which shows correct error handling on resource layer</description>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.0.4.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <properties>
+        <jacoco.version>0.7.7.201606060606</jacoco.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- Spring Boot Web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Typeof, in order to force more the fp/dsl approach and eliminate instanceof and downcasts. -->
+        <dependency>
+            <groupId>com.nurkiewicz.typeof</groupId>
+            <artifactId>typeof</artifactId>
+            <version>0.0.1</version>
+        </dependency>
+
+        <!-- Vavr -->
+        <dependency>
+            <groupId>io.vavr</groupId>
+            <artifactId>vavr</artifactId>
+            <version>0.9.2</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- Note: Surefire plugin for unit tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                </configuration>
+
+            </plugin>
+
+            <!-- Note: Failsafe plugin for integration tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <parallel>classes</parallel>
+                    <threadCount>5</threadCount>
+                    <includes>
+                        <include>**/*IT.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <!-- Note: JaCoCo plugin for line and branch coverage on unit tests -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets the path to the file which contains the execution data. -->
+
+                            <dataFile>target/jacoco.exec</dataFile>
+                            <!-- Sets the output directory for the code coverage report. -->
+                            <outputDirectory>target/jacoco-ut</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jacoco-check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule implementation="org.jacoco.maven.RuleConfiguration">
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit implementation="org.jacoco.report.check.Limit">
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.90</minimum>
+                                        </limit>
+                                        <limit implementation="org.jacoco.report.check.Limit">
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+                                        <limit implementation="org.jacoco.report.check.Limit">
+                                            <counter>CLASS</counter>
+                                            <value>MISSEDCOUNT</value>
+                                            <maximum>0</maximum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <systemPropertyVariables>
+                        <jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
+                    </systemPropertyVariables>
+                    <excludes>
+
+                        <!-- Domain exclusions -->
+                        <exclude>com/chriniko/controllererrorhandling/domain/*</exclude>
+                        <exclude>com/chriniko/controllererrorhandling/resource/handler/PayloadErrorDetails.class</exclude>
+                        <exclude>com/chriniko/controllererrorhandling/resource/handler/HeaderErrorDetails.class</exclude>
+
+                        <!-- Application infrastructure exclusions -->
+                        <exclude>com/chriniko/controllererrorhandling/ControllerErrorHandlingApplication.class</exclude>
+
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <!-- Note: PiTest plugin for mutation testing on unit tests -->
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.1.10</version>
+                <configuration>
+                    <mutators>
+                        <mutator>CONDITIONALS_BOUNDARY</mutator>
+                        <mutator>INCREMENTS</mutator>
+                        <mutator>MATH</mutator>
+                        <mutator>INVERT_NEGS</mutator>
+                        <mutator>NEGATE_CONDITIONALS</mutator>
+                        <mutator>RETURN_VALS</mutator>
+                        <mutator>VOID_METHOD_CALLS</mutator>
+                    </mutators>
+                    <targetClasses>
+                        <param>com.chriniko.controllererrorhandling.*</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>com.chriniko.controllererrorhandling.*</param>
+                    </targetTests>
+                    <timeoutConstant>6000</timeoutConstant>
+                    <timeoutFactor>1.5</timeoutFactor>
+                    <threads>2</threads>
+                    <verbose>false</verbose>
+                    <timestampedReports>false</timestampedReports>
+                    <coverageThreshold>90</coverageThreshold>
+                    <mutationThreshold>60</mutationThreshold>
+                    <excludedClasses>
+
+                        <!-- Domain exclusions -->
+                        <excludedClass>com.chriniko.controllererrorhandling.domain.*</excludedClass>
+                        <excludedClass>com.chriniko.controllererrorhandling.resource.handler.PayloadErrorDetails</excludedClass>
+                        <excludedClass>com.chriniko.controllererrorhandling.resource.handler.HeaderErrorDetails</excludedClass>
+
+                        <!-- Application infrastructure exclusions -->
+                        <excludedClass>com.chriniko.controllererrorhandling.ControllerErrorHandlingApplication</excludedClass>
+
+                        <!-- Integration Test Exclusions-->
+                        <excludedClass>com.chriniko.controllererrorhandling.it.*</excludedClass>
+
+                    </excludedClasses>
+
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+
+</project>

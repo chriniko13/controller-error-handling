@@ -1,0 +1,15 @@
+{
+  "description": "change oil, oil filter, front brake pads",
+  "kms": "43567",
+  "date": "2017-12-03",
+  "motorcycle": {
+    "make": "suzuki",
+    "model": "gsxr1000",
+    "year": "2011"
+  },
+  "owner": {
+    "firstname": "andreas",
+    "initials": "",
+    "surname": "andreou"
+  }
+}
